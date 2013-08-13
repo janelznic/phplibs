@@ -1,7 +1,7 @@
 <?php
 /**
  * @name phpfw
- * @version 1.0.3-8
+ * @version 1.0.3-9
  * @description Miniaturní PHP framework
  * @branch unstable
  */
@@ -260,12 +260,11 @@ class FW
 	 * Vrati aktualni url
 	 * @return string Url
 	 */
-	function currentUrl($path = true) {
+	public function currentUrl($path = true) {
 		$protocol = isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" ? "https" : "http";
-
 		$host = $_SERVER["SERVER_NAME"];
-
 		$port = $_SERVER["SERVER_PORT"];
+
 		if (($protocol == "http" && $port == "80") || ($protocol == "https" && $port == "443")) {
 			$port = "";
 		} else {
