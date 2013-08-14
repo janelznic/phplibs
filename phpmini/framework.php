@@ -1,12 +1,20 @@
 <?php
 /**
  * @name phpfw
- * @version 1.0.3-9
+ * @version 1.0.4-1
  * @description Miniaturní PHP framework
  * @branch unstable
  */
 class FW
 {
+	/**
+	 * Ošetří řetězec pro použití v MySQL
+	 * @param {string} string řetězec
+	 */
+	public static function mres($string) {
+		return mysql_real_escape_string($string);
+	}
+
 	/**
 	 * Vyčistí řetězec od HTML znaků (převede na entity)
 	 * @param {string} val řetězec
