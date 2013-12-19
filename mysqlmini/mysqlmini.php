@@ -1,7 +1,7 @@
 <?php
 /**
  * @name mysqlmini
- * @version 1.0.4-1
+ * @version 1.0.5
  * @description Framework pro práci s MySQL databází
  * @depends phpmini (>= 1.0)
  * @branch unstable
@@ -11,21 +11,17 @@ class MySQL
 	/**
 	 * Aktualizuje data v řádku na základě předaných informací
 	 * @param {string} tabName Jméno tabulky
-	 * @param {string} colName Název sloupce
-	 * @param {string} valueBy Hodnota ve sloupci, kterou budeme hledat
+	 * @param {string|array} colName Název sloupce nebo pole sloupců, který/é budeme hledat
+	 * @param {string|boolean} valueBy Hodnota ve sloupci, kterou budeme hledat; pokud hledáme více hodnot, tak false
 	 * @param {array} data Nová data pro uložení
 	 **/
 	function updateRow($tabName, $colName, $valueBy, $data) {
 		$tabName = FW::mres($tabName);
-		$colName = FW::mres($colName);
-		$valueBy = FW::mres($valueBy);
 
 		$settings = "";
 		$i=0;
 		$colsCount = count($data)-1;
 		foreach ($data as $key => $value) {
-			$key = FW::mres($key);
-			$value = FW::mres($value);
 			$settings .= sprintf("%s = '%s'", FW::mres($key), FW::mres($value));
 			if ($i != $colsCount) {
 				$settings .= ", ";
@@ -33,10 +29,27 @@ class MySQL
 			$i++;
 		}
 
+		if (is_array($colName)) {
+			$where = "";
+			$j=0;
+			$whereCount = count($colName)-1;
+			foreach ($colName as $key => $value) {
+				$where .= sprintf("%s like '%s'", FW::mres($key), FW::mres($value));
+				if ($j != $whereCount) {
+					$where .= " and ";
+				}
+				$j++;
+			}
+		} else {
+			$colName = FW::mres($colName);
+			$valueBy = FW::mres($valueBy);
+			$where = sprintf("%s like %s", $colName, $valueBy);
+		}
+
 		$request = mysql_query(
 			$sql = sprintf(
-				"update %s_%s set %s where %s like '%s'",
-				Config::get("mysqlPrefix"), $tabName, $settings, $colName, $valueBy
+				"update %s_%s set %s where %s",
+				Config::get("mysqlPrefix"), $tabName, $settings, $where
 			)
 		);
 
@@ -57,7 +70,7 @@ class MySQL
 	 * @param {string} value Hodnota ve sloupci, kterou budeme hledat
 	 * @param {array} order Řazení sloupců (dle posloupnosti), může být false - nepovinné
 	 **/
-	public static function selectRow($tabName, $colName, $value, $order) {
+	public static function selectRow($tabName, $colName, $value, $order = false) {
 		if (!MySQL::orderByControl($order)) return false;
 
 		# Řazení podle sloupců
@@ -261,7 +274,7 @@ class MySQL
 	 * @param {array} order Řazení sloupců (dle posloupnosti), může být false - nepovinné
 	 * @param {float} limit Limit počtu zobrazení
 	 **/
-	public static function getList($cols, $table, $where, $order, $limit) {
+	public static function getList($cols, $table, $where = false, $order = false, $limit = false) {
 		if (!is_array($cols)) {
 			Dbg::log("Error: Argument cols must be an array");
 			return false;
