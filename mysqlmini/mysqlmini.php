@@ -1,7 +1,7 @@
 <?php
 /**
  * @name mysqlmini
- * @version 1.0.5
+ * @version 1.0.6
  * @description Framework pro práci s MySQL databází
  * @depends phpmini (>= 1.0)
  * @branch unstable
@@ -118,19 +118,38 @@ class MySQL
 	/**
 	 * Vrátí počet záznamů odpovídajcích dané hodnotě
 	 * @param {string} tabName Jméno tabulky
-	 * @param {string} colName Název sloupce
-	 * @param {string} value Hodnota ve sloupci, kterou budeme hledat
+	 * @param {string|array} colName Název sloupce nebo sloupců, podle kterých budeme hledat
+	 * @param {string|boolean} value Hodnota ve sloupci, kterou budeme hledat; v případě více hodnot bude false
 	 **/
 	public static function countRows($tabName, $colName, $value) {
 		$tabName = FW::mres($tabName);
-		$colName = FW::mres($colName);
-		$value = FW::mres($value);
+
+		if (is_array($colName)) {
+			$where = "";
+			$j=0;
+			$whereCount = count($colName)-1;
+			foreach ($colName as $key => $value) {
+				if (!$j) $countCol = $key;
+				$where .= sprintf("%s like '%s'", FW::mres($key), FW::mres($value));
+				if ($j != $whereCount) {
+					$where .= " and ";
+				}
+				$j++;
+			}
+		} else {
+			$colName = FW::mres($colName);
+			$value = FW::mres($value);
+			$where = sprintf("%s like %s", $colName, $value);
+		}
+
 		list($count) = mysql_fetch_row($query = mysql_query(
 			$sql = sprintf(
-				"select count(%s) from %s_%s where %s like '%s'",
-				$colName, Config::get("mysqlPrefix"), $tabName, $colName, $value
+				"select count(%s) from %s_%s where %s",
+				(is_array($colName) ? $countCol : $colName), Config::get("mysqlPrefix"), $tabName, $where
 			)
 		));
+
+		Dbg::log($sql);
 
 		if ($query) {
 			return $count;
