@@ -1,7 +1,7 @@
 <?php
 /**
  * @name mysqlmini
- * @version 1.0.6
+ * @version 1.0.7
  * @description Framework pro práci s MySQL databází
  * @depends phpmini (>= 1.0)
  * @branch unstable
@@ -53,8 +53,6 @@ class MySQL
 			)
 		);
 
-		//Dbg::log($sql);
-
 		if ($request) {
 			return true;
 		} else {
@@ -93,8 +91,6 @@ class MySQL
 					Config::get("mysqlPrefix"), $tabName, $colName, $value, $sort
 				)
 			);
-
-			//Dbg::log($sql);
 
 			if ($request) {
 				$colsData = mysql_fetch_array($request);
@@ -137,9 +133,7 @@ class MySQL
 				$j++;
 			}
 		} else {
-			$colName = FW::mres($colName);
-			$value = FW::mres($value);
-			$where = sprintf("%s like %s", $colName, $value);
+			$where = sprintf("%s like %s", FW::mres($colName), FW::mres($value));
 		}
 
 		list($count) = mysql_fetch_row($query = mysql_query(
@@ -148,8 +142,6 @@ class MySQL
 				(is_array($colName) ? $countCol : $colName), Config::get("mysqlPrefix"), $tabName, $where
 			)
 		));
-
-		Dbg::log($sql);
 
 		if ($query) {
 			return $count;
@@ -162,25 +154,36 @@ class MySQL
 	/**
 	 * Smaže řádek z DB
 	 * @param {string} tabName Jméno tabulky
-	 * @param {string} colName Název sloupce, podle kterého budeme mazat
-	 * @param {string} value Hodnota ve sloupci, kterou budeme hledat
+	 * @param {string|array} colName Název sloupce nebo sloupců, podle kterého budeme mazat; případně hodnoty v něm
+	 * @param {string|boolean} value Hodnota ve sloupci, kterou budeme hledat; v případě více porovnávacích sloupců a hodnot bude false
 	 **/
 	public static function deleteRow($tabName, $colName, $value) {
 		$tabName = FW::mres($tabName);
-		$colName = FW::mres($colName);
-		$value = FW::mres($value);
+
+		if (is_array($colName)) {
+			$where = "";
+			$i=0;
+			$whereCount = count($colName)-1;
+			foreach ($colName as $key => $value) {
+				if (!$i) $countCol = $key;
+				$where .= sprintf("%s like '%s'", FW::mres($key), FW::mres($value));
+				if ($i != $whereCount) {
+					$where .= " and ";
+				}
+				$i++;
+			}
+		} else {
+			$where = sprintf("%s like %s", FW::mres($colName), FW::mres($value));
+		}
 
 		$request = mysql_query(
 			$sql = sprintf(
-				"delete from %s_%s where %s like '%s'",
+				"delete from %s_%s where %s",
 				Config::get("mysqlPrefix"),
 				$tabName,
-				$colName,
-				$value
+				$where
 			)
 		);
-
-		//Dbg::log($sql);
 
 		if ($request) {
 			return true;
@@ -223,8 +226,6 @@ class MySQL
 				Config::get("mysqlPrefix"), $tabName, $colNames, $values
 			)
 		);
-
-		//Dbg::log($sql);
 
 		if ($request) {
 			return true;
@@ -356,8 +357,6 @@ class MySQL
 		$request = mysql_query($sql = sprintf("select %s from %s_%s%s%s%s",
 			$colNames, Config::get("mysqlPrefix"), $table, $conditions, $sort, $limit)
 		);
-
-		//Dbg::log($sql);
 
 		if (!$request) {
 			Dbg::log(sprintf("Error: Cannot select data from %s", $table));
