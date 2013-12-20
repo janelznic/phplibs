@@ -1,7 +1,7 @@
 <?php
 /**
  * @name phpfw
- * @version 1.0.4-1
+ * @version 1.0.5
  * @description Miniaturní PHP framework
  * @branch unstable
  */
@@ -169,7 +169,7 @@ class FW
 	 * @param {string} key Název klíče
 	 * @param {boolean} desc Sestupné řazení
 	 */
-	public static function arrByKey($key, $desc) {
+	public static function arrByKey($key, $desc = false) {
 		return function ($a, $b) use ($key, $desc) {
 			if ($a[$key] == $b[$key]) return 0;
 			if ($desc) {
