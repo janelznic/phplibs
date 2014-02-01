@@ -1,7 +1,7 @@
 <?php
 /**
  * @name phpfw
- * @version 1.0.6-1
+ * @version 1.0.6-2
  * @description Miniaturní PHP framework
  * @branch unstable
  */
@@ -306,6 +306,24 @@ class FW
 	 */
 	public static function nl2br($text) {
 		return trim(preg_replace('/(\v|\s)+/', ' ', nl2br($text)));
+	}
+
+	/**
+	 * Vyparsuje relativní tvar URL z absolutního tvaru URL
+	 * 
+	 * @param {string} $url URL adresa
+	 * @return {string} Relativní tvar URL
+	 */
+	public static function parseRelativeUrl($url) {
+		$proto = "";
+		if (substr($url, 0, 7) == "http://") $proto = "http://";
+		if (substr($url, 0, 8) == "https://") $proto = "https://";
+		$domain = parse_url($url, PHP_URL_HOST);
+		$urlRoot = $proto . $domain;
+		if ($proto) {
+			$urlRoot = $proto . $domain . "/";
+		}
+		return substr($url, strlen($urlRoot));
 	}
 }
 ?>
