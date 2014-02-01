@@ -1,7 +1,7 @@
 <?php
 /**
  * @name phpfw
- * @version 1.0.5
+ * @version 1.0.6-1
  * @description Miniaturní PHP framework
  * @branch unstable
  */
@@ -233,7 +233,7 @@ class FW
 	/**
 	 * Posílá statusy do HTTP hlaviček
 	 */
-	public function httpStatus($code) {
+	public static function httpStatus($code) {
 		switch ($code) {
 			case 301:
 				$status = "Moved Permanently";
@@ -268,7 +268,7 @@ class FW
 	 * Vrati aktualni url
 	 * @return string Url
 	 */
-	public function currentUrl($path = true) {
+	public static function currentUrl($path = true) {
 		$protocol = isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" ? "https" : "http";
 		$host = $_SERVER["SERVER_NAME"];
 		$port = $_SERVER["SERVER_PORT"];
@@ -286,6 +286,26 @@ class FW
 		}
 
 		return $protocol."://".$host.$port.$path;   
+	}
+
+	/**
+	 * Zkonvertuje <br /> na nové řádky
+	 *
+	 * @param {string} Řetězec, který budeme modifikovat
+	 * @return {string} Řetězec s novými řádky namísto <br />
+	 */
+	public static function br2nl($str) {
+		return preg_replace('/\<br(\s*)?\/?\>/i', "\n", $str);
+	}
+
+	/**
+	 * Zpracuje text z textarea pro uložení do DB
+	 * 
+	 * @param {string} Vstupní řetězec
+	 * @return {string} Výstupní řetězec
+	 */
+	public static function nl2br($text) {
+		return trim(preg_replace('/(\v|\s)+/', ' ', nl2br($text)));
 	}
 }
 ?>
