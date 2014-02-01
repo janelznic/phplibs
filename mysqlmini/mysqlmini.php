@@ -1,7 +1,7 @@
 <?php
 /**
  * @name mysqlmini
- * @version 1.0.7
+ * @version 1.0.8
  * @description Framework pro práci s MySQL databází
  * @depends phpmini (>= 1.0)
  * @branch unstable
@@ -75,39 +75,50 @@ class MySQL
 		$sort = MySQL::makeSorting($order);
 
 		$tabName = FW::mres($tabName);
-		$colName = FW::mres($colName);
-		$value = FW::mres($value);
+
+		if (is_array($colName)) {
+			$where = "";
+			$j=0;
+			$whereCount = count($colName)-1;
+			foreach ($colName as $key => $value) {
+				if (!$j) $countCol = $key;
+				$where .= sprintf("%s like '%s'", FW::mres($key), FW::mres($value));
+				if ($j != $whereCount) {
+					$where .= " and ";
+				}
+				$j++;
+			}
+		} else {
+			$where = sprintf("%s like '%s'", FW::mres($colName), FW::mres($value));
+		}
+
 		list($count) = mysql_fetch_row(mysql_query(
-			sprintf(
-				"select count(%s) from %s_%s where %s like '%s'",
-				$colName, Config::get("mysqlPrefix"), $tabName, $colName, $value
+			$sql = sprintf(
+				"select count(%s) from %s_%s where %s",
+				(is_array($colName) ? $countCol : $colName), Config::get("mysqlPrefix"), $tabName, $where
 			)
 		));
 
-		if ($count) {
-			$request = mysql_query(
-				$sql = sprintf(
-					"select * from %s_%s where %s like '%s'%s",
-					Config::get("mysqlPrefix"), $tabName, $colName, $value, $sort
-				)
-			);
+		if (!$count) return false;
+		$request = mysql_query(
+			$sql = sprintf("select * from %s_%s where %s", Config::get("mysqlPrefix"), $tabName, $where)
+		);
 
-			if ($request) {
-				$colsData = mysql_fetch_array($request);
+		if ($request) {
+			$colsData = mysql_fetch_array($request);
 
-				$i = 0;
-				foreach ($colsData as $key => $value) {
-					if ($key == $i) {
-						$i++;
-					} else {
-						$output[$key] = $value;
-					}
+			$i = 0;
+			foreach ($colsData as $key => $value) {
+				if ($key == $i) {
+					$i++;
+				} else {
+					$output[$key] = $value;
 				}
-				return $output;
-			} else {
-				Dbg::log("Error: Cannot select this row");
-				return false;
 			}
+			return $output;
+		} else {
+			Dbg::log("Error: Cannot select this row");
+			return false;
 		}
 	}
 
@@ -133,7 +144,7 @@ class MySQL
 				$j++;
 			}
 		} else {
-			$where = sprintf("%s like %s", FW::mres($colName), FW::mres($value));
+			$where = sprintf("%s like '%s'", FW::mres($colName), FW::mres($value));
 		}
 
 		list($count) = mysql_fetch_row($query = mysql_query(
@@ -373,6 +384,15 @@ class MySQL
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Vyprázdní celou tabulku
+	 * @param {string} table Název tabulky - povinné
+	 */
+	public static function truncateTable($table) {
+		if (!$table) return false;
+		return mysql_query($sql = sprintf("truncate table %s_%s", Config::get("mysqlPrefix"), $table));
 	}
 }
 ?>
