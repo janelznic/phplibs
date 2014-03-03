@@ -1,7 +1,7 @@
 <?php
 /**
  * @name mysqlmini
- * @version 1.0.8
+ * @version 1.0.8-1
  * @description Framework pro práci s MySQL databází
  * @depends phpmini (>= 1.0)
  * @branch unstable
@@ -43,7 +43,7 @@ class MySQL
 		} else {
 			$colName = FW::mres($colName);
 			$valueBy = FW::mres($valueBy);
-			$where = sprintf("%s like %s", $colName, $valueBy);
+			$where = sprintf("%s like '%s'", $colName, $valueBy);
 		}
 
 		$request = mysql_query(
@@ -68,7 +68,7 @@ class MySQL
 	 * @param {string} value Hodnota ve sloupci, kterou budeme hledat
 	 * @param {array} order Řazení sloupců (dle posloupnosti), může být false - nepovinné
 	 **/
-	public static function selectRow($tabName, $colName, $value, $order = false) {
+	public static function selectRow($tabName, $colName, $value = false, $order = false) {
 		if (!MySQL::orderByControl($order)) return false;
 
 		# Řazení podle sloupců
