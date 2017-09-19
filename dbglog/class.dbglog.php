@@ -1,15 +1,17 @@
 <?php
 /**
  * @name dbglog
- * @version 1.0.4-1
- * Debugovací nástroj
+ * @version 1.1
+ * Simple log tool for PHP debug
+ * Your Apache2 config must contain this row in sections for logs e.g.:
+ * SetEnv DEBUG_LOG_FILE __PATH__/log/debug.log
  */
 class Dbg
 {
 	/**
-	 * Vytiskne řetězec na obrazovku
-	 * @param string $var Řetězec
-	 * @param boolean $p Budeme používat formátování pro odsazení?
+	 * Write string to document
+	 * @param string $var String
+	 * @param boolean $p Format for indent?
 	 */
 	public static function write($var, $p) {
 		if ($p == 0) echo "<pre>";
@@ -18,8 +20,10 @@ class Dbg
 	}
 
 	/**
-	 * Zaloguje řetězec do debug logu v souboru
-	 * @param string $var Řetězec
+	 * Log string to file
+	 * @param string $var String
+	 * @param boolean $des Date view?
+	 * @param integer $lines Indent for new messages
 	 */
 	public static function log($var, $des = false, $lines = 0) {
 		$output = "";
@@ -28,8 +32,7 @@ class Dbg
 		if ($des) $output .= $des.":"."\n";
 		$output .= print_r($var, true);
 
-		$file = fopen("log/debug.log", "a");
-		//if (gettype($var == "boolean")) $var = ($var == 1 ? "true" : "false");
+		$file = fopen(apache_getenv('DEBUG_LOG_FILE'), "a");
 		fwrite($file, ($output."\n"));
 		fclose($file);
 	}
