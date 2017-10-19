@@ -8,7 +8,9 @@
 **/
 
 # Absolute path for file with template functions (optional)
-@include_once(require_once(apache_getenv('TEMPL_FUNC_FILE')););
+if (apache_getenv('TEMPL_FUNC_FILE')) {
+	@include_once(require_once(apache_getenv('TEMPL_FUNC_FILE')));
+}
 
 /**
  * Constructor
